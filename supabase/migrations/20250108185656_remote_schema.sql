@@ -1,5 +1,4 @@
 set check_function_bodies = off;
-
 CREATE OR REPLACE FUNCTION public.set_ghost_user_before_delete()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -12,7 +11,4 @@ AS $function$BEGIN
   
   -- Return the OLD record to allow the deletion to proceed
   RETURN OLD;
-END;$function$
-;
-
-
+END;$function$;
