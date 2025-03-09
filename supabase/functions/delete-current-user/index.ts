@@ -1,21 +1,6 @@
-// Follow these steps to run the function in a secure environment.
-// 1. Ensure Supabase secrets (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) are set in your environment.
+import supabase from '../utils/supabase.ts'
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.12'
-
-const supabaseUrl = Deno.env.get('SUPABASE_URL')
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error(
-    'Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY'
-  )
-}
-
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   try {
     // Parse the authorization header to get the user's JWT
     const authHeader = req.headers.get('Authorization')
@@ -31,7 +16,7 @@ serve(async (req) => {
     const {
       data: { user },
       error
-    } = await supabaseAdmin.auth.getUser(jwt)
+    } = await supabase.auth.getUser(jwt)
 
     if (error || !user) {
       return new Response(
@@ -43,8 +28,7 @@ serve(async (req) => {
     const userId = user.id
 
     // Delete the user from Supabase Auth
-    const { error: deleteError } =
-      await supabaseAdmin.auth.admin.deleteUser(userId)
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId)
 
     if (deleteError) {
       console.error('Error deleting user:', deleteError)
