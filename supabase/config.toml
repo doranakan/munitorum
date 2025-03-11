@@ -203,4 +203,4 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [db.seed]
 enabled = true
-sql_paths = ['./seeds/populate_db.sql', './seeds/populate_test_users.sql', './seeds/populate_communities.sql']
+sql_paths = ['./seeds/populate_db.sql', './seeds/populate_test_users.sql']
