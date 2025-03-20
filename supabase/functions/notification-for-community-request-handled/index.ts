@@ -6,10 +6,18 @@ type Notification = {
   id: string
   user: string
   community: string
+  accepted: boolean | null
 }
 
 Deno.serve(async (req) => {
   const payload: WebhookPayload<Notification> = await req.json()
+
+  if (payload.record.accepted === null) {
+    return new Response(null, {
+      headers: { 'Content-Type': 'application/json' },
+      status: 304
+    })
+  }
 
   const { data: community } = await supabase
     .from('communities')
@@ -27,7 +35,7 @@ Deno.serve(async (req) => {
   try {
     const res = await sendPushNotification({
       title: community.name,
-      body: `Your request has been accepted 🎉`,
+      body: `Your request has been ${payload.record.accepted ? 'accepted 🎉' : 'denied 🚫'}`,
       user: payload.record.user,
       url: `communities-tab`,
       notifications: ['communities']

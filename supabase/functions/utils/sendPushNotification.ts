@@ -23,7 +23,7 @@ const sendPushNotification = async ({
     .eq('user', user)
 
   const { data } = await supabase
-    .from('users_notifications')
+    .from('user_notifications')
     .select('notifications')
     .eq('user', user)
     .single<{ notifications: Record<string, number> }>()
@@ -36,7 +36,7 @@ const sendPushNotification = async ({
   )
 
   await supabase
-    .from('users_notifications')
+    .from('user_notifications')
     .upsert({
       user,
       notifications: {
