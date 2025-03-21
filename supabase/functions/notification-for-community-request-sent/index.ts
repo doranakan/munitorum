@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       title: community.name,
       body: `${user.name} wants to join the community`,
       user: admin.user,
-      url: `communities/${payload.record.community}`,
+      url: `community/${payload.record.community}`,
       notifications: ['communities']
     })
 
