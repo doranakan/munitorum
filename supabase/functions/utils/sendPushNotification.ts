@@ -4,7 +4,7 @@ import supabase from './supabase.ts'
 type Args = {
   title: string
   body: string
-  user: string
+  to: string | string[]
   notifications: string[]
 
   url?: string
@@ -14,13 +14,10 @@ const sendPushNotification = async ({
   body,
   notifications,
   title,
-  user,
+  to,
   url
 }: Args) => {
-  const { data: pushTokens } = await supabase
-    .from('users_push_tokens')
-    .select('push_token')
-    .eq('user', user)
+  const pushTokens = await getPushTokens(to)
 
   const { data } = await supabase
     .from('user_notifications')
@@ -97,6 +94,24 @@ const sendPushNotification = async ({
   }
 
   return res
+}
+
+const getPushTokens = (to: string | string[]) => {
+    if(typeof to === 'string') {
+    const { data: tokens } = await supabase
+      .from('users_push_tokens')
+      .select('push_token')
+      .eq('user', to)
+
+      return tokens
+    }
+
+    const { data: tokens } = await supabase
+      .from('users_push_tokens')
+      .select('push_token')
+      .in('user', to)
+
+      return tokens
 }
 
 export default sendPushNotification
