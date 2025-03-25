@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const res = await sendPushNotification({
       title: community.name,
       body: `Your request has been ${payload.record.accepted ? 'accepted 🎉' : 'denied 🚫'}`,
-      to: payload.record.user,
+      user: payload.record.user,
       url: `communities-tab`,
       notifications: ['communities']
     })
