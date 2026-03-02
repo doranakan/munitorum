@@ -119,8 +119,9 @@ BEGIN
   SELECT army_id INTO a27 FROM _tseed WHERE name = 'test27';
   SELECT army_id INTO a28 FROM _tseed WHERE name = 'test28';
 
-  -- ============================================================
+    -- ============================================================
   -- #1  Open + Swiss
+  --     Players have signed up but not yet selected armies
   -- ============================================================
   INSERT INTO public.tournaments
     (name, address, date, format, status, points_limit, organizer)
@@ -129,26 +130,28 @@ BEGIN
      now() + interval '14 days', 'swiss', 'open', 500, u1)
   RETURNING id INTO t1;
 
-  INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
-    (t1, u1, a1),
-    (t1, u2, a2);
+  INSERT INTO public.tournament_registrations (tournament, "user") VALUES
+    (t1, u1),
+    (t1, u2);
 
   -- ============================================================
   -- #2  Open + Single Elimination
+  --     Players have signed up but not yet selected armies
   -- ============================================================
   INSERT INTO public.tournaments
-    (name, address, date, format, status, organizer)
+    (name, address, date, format, status, points_limit, organizer)
   VALUES
     ('Open Elimination Cup', 'Warhammer World, Nottingham',
-     now() + interval '10 days', 'single_elimination', 'open', u3)
+     now() + interval '10 days', 'single_elimination', 'open', 500, u3)
   RETURNING id INTO t2;
 
-  INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
-    (t2, u3, a3),
-    (t2, u4, a4);
+  INSERT INTO public.tournament_registrations (tournament, "user") VALUES
+    (t2, u3),
+    (t2, u4);
 
   -- ============================================================
   -- #3  Ready + Swiss
+  --     2 players have selected armies, 2 still pending
   -- ============================================================
   INSERT INTO public.tournaments
     (name, address, date, format, status, points_limit, organizer)
@@ -159,12 +162,15 @@ BEGIN
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
     (t3, u5, a5),
-    (t3, u6, a6),
-    (t3, u7, a7),
-    (t3, u8, a8);
+    (t3, u6, a6);
+
+  INSERT INTO public.tournament_registrations (tournament, "user") VALUES
+    (t3, u7),
+    (t3, u8);
 
   -- ============================================================
   -- #4  Ready + Single Elimination
+  --     All players have selected armies (ready to start)
   -- ============================================================
   INSERT INTO public.tournaments
     (name, address, date, format, status, points_limit, organizer)
