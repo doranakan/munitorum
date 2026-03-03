@@ -3,16 +3,17 @@
 --
 -- Creates 8 tournaments covering every status × format combination:
 --
---   #1  Open    + Swiss              (test1–test2,   2 registrations)
---   #2  Open    + Single Elimination (test3–test4,   2 registrations)
---   #3  Ready   + Swiss              (test5–test8,   4 players)
---   #4  Ready   + Single Elimination (test9–test12,  4 players)
---   #5  Started + Swiss              (test13–test16, 4 players — R1 done, R2 in progress)
---   #6  Started + Single Elimination (test17–test20, 4 players — R1 done, Final pending)
---   #7  Ended   + Swiss              (test21–test24, 4 players — 3 rounds, champion: test23)
---   #8  Ended   + Single Elimination (test25–test28, 4 players — 2 rounds, champion: test25)
+--   #1  Open    + Swiss              (organizer: test29, players: test1–test2)
+--   #2  Open    + Single Elimination (organizer: test30, players: test3–test4)
+--   #3  Ready   + Swiss              (organizer: test31, players: test5–test8)
+--   #4  Ready   + Single Elimination (organizer: test32, players: test9–test12)
+--   #5  Started + Swiss              (organizer: test33, players: test13–test16 — R1 done, R2 in progress)
+--   #6  Started + Single Elimination (organizer: test34, players: test17–test20 — R1 done, Final pending)
+--   #7  Ended   + Swiss              (organizer: test35, players: test21–test24 — 3 rounds, champion: test23)
+--   #8  Ended   + Single Elimination (organizer: test36, players: test25–test28 — 2 rounds, champion: test25)
 --
--- No users overlap across tournaments.
+-- Organizers (test29–test36) are never registered as participants.
+-- No participant overlaps across tournaments.
 
 -- Temp lookup: user IDs and their tournament army (secret = false, from army seed)
 CREATE TEMP TABLE _tseed AS
@@ -25,12 +26,13 @@ WHERE u.name = ANY(ARRAY[
   'test1','test2','test3','test4','test5','test6','test7',
   'test8','test9','test10','test11','test12','test13','test14',
   'test15','test16','test17','test18','test19','test20',
-  'test21','test22','test23','test24','test25','test26','test27','test28'
+  'test21','test22','test23','test24','test25','test26','test27','test28',
+  'test29','test30','test31','test32','test33','test34','test35','test36'
 ]);
 
 DO $$
 DECLARE
-  -- user IDs
+  -- participant user IDs
   u1  uuid; u2  uuid; u3  uuid; u4  uuid;
   u5  uuid; u6  uuid; u7  uuid; u8  uuid;
   u9  uuid; u10 uuid; u11 uuid; u12 uuid;
@@ -38,6 +40,10 @@ DECLARE
   u17 uuid; u18 uuid; u19 uuid; u20 uuid;
   u21 uuid; u22 uuid; u23 uuid; u24 uuid;
   u25 uuid; u26 uuid; u27 uuid; u28 uuid;
+
+  -- organizer user IDs (never registered as participants)
+  o1 uuid; o2 uuid; o3 uuid; o4 uuid;
+  o5 uuid; o6 uuid; o7 uuid; o8 uuid;
 
   -- army IDs
   a1  bigint; a2  bigint; a3  bigint; a4  bigint;
@@ -89,6 +95,16 @@ BEGIN
   SELECT uid INTO u27 FROM _tseed WHERE name = 'test27';
   SELECT uid INTO u28 FROM _tseed WHERE name = 'test28';
 
+  -- Load organizer IDs
+  SELECT uid INTO o1 FROM _tseed WHERE name = 'test29';
+  SELECT uid INTO o2 FROM _tseed WHERE name = 'test30';
+  SELECT uid INTO o3 FROM _tseed WHERE name = 'test31';
+  SELECT uid INTO o4 FROM _tseed WHERE name = 'test32';
+  SELECT uid INTO o5 FROM _tseed WHERE name = 'test33';
+  SELECT uid INTO o6 FROM _tseed WHERE name = 'test34';
+  SELECT uid INTO o7 FROM _tseed WHERE name = 'test35';
+  SELECT uid INTO o8 FROM _tseed WHERE name = 'test36';
+
   -- Load army IDs
   SELECT army_id INTO a1  FROM _tseed WHERE name = 'test1';
   SELECT army_id INTO a2  FROM _tseed WHERE name = 'test2';
@@ -124,10 +140,10 @@ BEGIN
   --     Players have signed up but not yet selected armies
   -- ============================================================
   INSERT INTO public.tournaments
-    (name, address, date, format, status, points_limit, organizer)
+    (name, address, date, format, status, points_limit, number_of_rounds, organizer)
   VALUES
     ('Open Swiss GT', 'The Bunker, London',
-     now() + interval '14 days', 'swiss', 'open', 500, u1)
+     now() + interval '14 days', 'swiss', 'open', 500, 3, o1)
   RETURNING id INTO t1;
 
   INSERT INTO public.tournament_registrations (tournament, "user") VALUES
@@ -142,7 +158,7 @@ BEGIN
     (name, address, date, format, status, points_limit, organizer)
   VALUES
     ('Open Elimination Cup', 'Warhammer World, Nottingham',
-     now() + interval '10 days', 'single_elimination', 'open', 500, u3)
+     now() + interval '10 days', 'single_elimination', 'open', 500, o2)
   RETURNING id INTO t2;
 
   INSERT INTO public.tournament_registrations (tournament, "user") VALUES
@@ -154,10 +170,10 @@ BEGIN
   --     2 players have selected armies, 2 still pending
   -- ============================================================
   INSERT INTO public.tournaments
-    (name, address, date, format, status, points_limit, organizer)
+    (name, address, date, format, status, points_limit, number_of_rounds, organizer)
   VALUES
     ('Ready Swiss Championship', 'Dark Sphere, London',
-     now() + interval '5 days', 'swiss', 'ready', 500, u5)
+     now() + interval '5 days', 'swiss', 'ready', 500, 3, o3)
   RETURNING id INTO t3;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
@@ -176,7 +192,7 @@ BEGIN
     (name, address, date, format, status, points_limit, organizer)
   VALUES
     ('Ready Elimination Tournament', 'Warhammer World, Nottingham',
-     now() + interval '7 days', 'single_elimination', 'ready', 500, u9)
+     now() + interval '7 days', 'single_elimination', 'ready', 500, o4)
   RETURNING id INTO t4;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
@@ -193,10 +209,10 @@ BEGIN
   --         test14 vs test15 (pending, not yet played)
   -- ============================================================
   INSERT INTO public.tournaments
-    (name, address, date, format, status, points_limit, organizer)
+    (name, address, date, format, status, points_limit, number_of_rounds, organizer)
   VALUES
     ('Battle for the Warp – Swiss', 'The Overlords, Manchester',
-     now() - interval '1 day', 'swiss', 'started', 500, u13)
+     now() - interval '1 day', 'swiss', 'started', 500, 3, o5)
   RETURNING id INTO t5;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
@@ -235,7 +251,7 @@ BEGIN
     (name, address, date, format, status, points_limit, organizer)
   VALUES
     ('Battle for the Warp – Elimination', 'The Overlords, Manchester',
-     now() - interval '1 day', 'single_elimination', 'started', 500, u17)
+     now() - interval '1 day', 'single_elimination', 'started', 500, o6)
   RETURNING id INTO t6;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
@@ -276,10 +292,10 @@ BEGIN
   --       4th test24  0W-3L  100pts (35+25+40)
   -- ============================================================
   INSERT INTO public.tournaments
-    (name, address, date, format, status, points_limit, organizer)
+    (name, address, date, format, status, points_limit, number_of_rounds, organizer)
   VALUES
     ('Siege of Terra – Swiss', 'Warhammer World, Nottingham',
-     now() - interval '7 days', 'swiss', 'ended', 500, u21)
+     now() - interval '7 days', 'swiss', 'ended', 500, 3, o7)
   RETURNING id INTO t7;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
@@ -329,7 +345,7 @@ BEGIN
     (name, address, date, format, status, points_limit, organizer)
   VALUES
     ('Siege of Terra – Elimination', 'Warhammer World, Nottingham',
-     now() - interval '7 days', 'single_elimination', 'ended', 500, u25)
+     now() - interval '7 days', 'single_elimination', 'ended', 500, o8)
   RETURNING id INTO t8;
 
   INSERT INTO public.tournament_registrations (tournament, "user", army) VALUES
